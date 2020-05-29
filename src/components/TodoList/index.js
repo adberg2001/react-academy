@@ -5,22 +5,42 @@ import style from './todo.module.css'
 import Priorities from './Priority'
 
 function TodoList() {
-  const [todos, setTodos] = React.useState([])
-  const [title, setTitle] = React.useState('')
-  const [desc, setDesc] = React.useState('')
-  const [priority, setPriority] = React.useState('normal')
+  const initialState = {
+    toDoList: [],
+    title: '',
+    desc: '',
+    priority: 'normal',
+  };
+
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case 'CHANGE_TITLE':
+        return {...state, title: action.payload };
+      case 'CHANGE_DESC':
+        return {...state, desc: action.payload };
+      case 'CHANGE_PRIORITY':
+        return {...state, priority: action.payload };
+        case 'ADD_NEW_TODO':
+        return {...state, toDoList: [...state.toDoList, action.payload] };
+      default:
+        throw new Error();
+    }
+  };
+
+  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const {title, desc, priority, toDoList} = state;
 
   const handleAdd = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const newTodo = {
       id: shortid.generate(),
       title, desc, priority
-    }
-    setTitle('')
-    setDesc('')
-    setPriority('normal')
-    setTodos([ ...todos, newTodo ])
-  }
+    };
+    dispatch({ type: 'CHANGE_TITLE', payload: '' });
+    dispatch({ type: 'CHANGE_DESC', payload: '' });
+    dispatch({ type: 'CHANGE_PRIORITY', payload: 'normal'});
+    dispatch({ type: 'ADD_NEW_TODO', payload: newTodo });
+  };
 
   return (
     <div className={style.page}>
@@ -30,23 +50,23 @@ function TodoList() {
           type="text" 
           placeholder="Название" 
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => dispatch({ type: 'CHANGE_TITLE', payload: e.target.value })}
         />
         <textarea 
           placeholder="Описание" 
           value={desc}
-          onChange={(e) => setDesc(e.target.value)}
+          onChange={(e) => dispatch({ type: 'CHANGE_DESC', payload: e.target.value })}
         />
-        <Priorities 
+        <Priorities
           priority={priority}
-          setPriority={setPriority}
+          setPriority={(value) => dispatch({ type: 'CHANGE_PRIORITY', payload: value })}
         />
         <button onClick={handleAdd} >
           Добавить
         </button>
       </form>
       <div className={style.list}>
-      { todos.map(c => <Todo key={c.id} todo={c}/>) }
+      { toDoList.map(c => <Todo key={c.id} todo={c}/>)}
       </div>
     </div>
   )
